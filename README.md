@@ -1,0 +1,13 @@
+# nodejs-template
+
+### Environment variables
+PORT=
+DB_NAME=
+DB_USER=
+DB_PASS=
+
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_SESSION_TOKEN=
+AWS_BUCKET_NAME=
