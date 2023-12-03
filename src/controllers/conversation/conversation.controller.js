@@ -144,6 +144,102 @@ const accessConversation = async (req, res) => {
   }
 };
 
+// Create group conversation
+const createGroupConversation = async (req, res) => {
+  try {
+    console.log(req.user.id);
+
+    const { group_name, members } = req.body;
+
+    // Create conversation then add members
+    // If members == 1, keep the original structure
+    try {
+      // Insert conversation
+      let conversation = await insertNewDocument("conversation", {
+        conversation_name: group_name,
+      });
+
+      // Insert this user that create this conversation
+      const member_me = await insertNewDocument("member", {
+        user_id: req.user.id,
+        conversation_id: conversation._id,
+        joined_at: new Date(),
+      });
+
+      // Insert friend user
+      const memberUserPromises = members.map(async (member) => {
+        const member_user = await insertNewDocument("member", {
+          user_id: member._id,
+          conversation_id: conversation._id,
+          joined_at: new Date(),
+        });
+
+        return findAndPopulate(
+          "member",
+          {
+            user_id: member_user.user_id,
+          },
+          "user_id",
+          "-password"
+        );
+      });
+      const user_populated = await Promise.all(memberUserPromises);
+
+      // Populate user_id field wraps the return user object exclude password ;)
+      // const me_populated = await findAndPopulate(
+      //   "member",
+      //   {
+      //     user_id: member_me.user_id,
+      //   },
+      //   "user_id",
+      //   "-password"
+      // );
+
+      // const user_populated = await findAndPopulate(
+      //   "member",
+      //   {
+      //     user_id: member_user.user_id,
+      //   },
+      //   "user_id",
+      //   "-password"
+      // );
+
+      // Rename used_id key to user
+      const updatedMePopulated = (await findAndPopulate(
+        "member",
+        {
+          user_id: member_me.user_id,
+        },
+        "user_id",
+        "-password"
+      )).map(({ user_id, ...rest }) => ({
+        ...rest,
+        user: [user_id],
+      }));
+
+      const updatedUserPopulated = user_populated.map(
+        (user) => user.map(({ user_id, ...rest }) => ({ ...rest, user: [user_id] }))[0]
+      );
+
+      return res.status(200).send({
+        status: 200,
+        data: [
+          {
+            ...conversation._doc,
+            members: [updatedMePopulated[0], ...updatedUserPopulated],
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).send({ status: 500, error: error });
+    }
+
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message });
+  }
+};
+
 // Fetch all conversation (one-to-one and group chat)
 const getConversation = async (req, res) => {
   try {
@@ -209,4 +305,4 @@ const getConversation = async (req, res) => {
   }
 };
 
-module.exports = { accessConversation, getConversation };
+module.exports = { accessConversation, createGroupConversation, getConversation };
