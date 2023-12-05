@@ -62,6 +62,12 @@ const accessConversation = async (req, res) => {
           conversation_name: {
             $first: "$conversation_name",
           },
+          is_group: {
+            $first: "$is_group",
+          },
+          group_admin: {
+            $first: "$group_admin"
+          },
           createdAt: { $first: "$createdAt" },
           updatedAt: { $first: "$updatedAt" },
           __v: { $first: "$__v" },
@@ -85,6 +91,8 @@ const accessConversation = async (req, res) => {
       try {
         let conversation = await insertNewDocument("conversation", {
           conversation_name: req.user.id.concat("_", user_id),
+          is_group: false,
+          group_admin: null
         });
 
         const member_me = await insertNewDocument("member", {
@@ -144,6 +152,104 @@ const accessConversation = async (req, res) => {
   }
 };
 
+// Create group conversation
+const createGroupConversation = async (req, res) => {
+  try {
+    console.log(req.user.id);
+
+    const { group_name, members } = req.body;
+
+    // Create conversation then add members
+    // If members == 1, keep the original structure
+    try {
+      // Insert conversation
+      let conversation = await insertNewDocument("conversation", {
+        conversation_name: group_name,
+        is_group: true,
+        group_admin: new ObjectId(req.user.id)
+      });
+
+      // Insert this user that create this conversation
+      const member_me = await insertNewDocument("member", {
+        user_id: req.user.id,
+        conversation_id: conversation._id,
+        joined_at: new Date(),
+      });
+
+      // Insert friend user
+      const memberUserPromises = members.map(async (member) => {
+        const member_user = await insertNewDocument("member", {
+          user_id: member._id,
+          conversation_id: conversation._id,
+          joined_at: new Date(),
+        });
+
+        return findAndPopulate(
+          "member",
+          {
+            user_id: member_user.user_id,
+          },
+          "user_id",
+          "-password"
+        );
+      });
+      const user_populated = await Promise.all(memberUserPromises);
+
+      // Populate user_id field wraps the return user object exclude password ;)
+      // const me_populated = await findAndPopulate(
+      //   "member",
+      //   {
+      //     user_id: member_me.user_id,
+      //   },
+      //   "user_id",
+      //   "-password"
+      // );
+
+      // const user_populated = await findAndPopulate(
+      //   "member",
+      //   {
+      //     user_id: member_user.user_id,
+      //   },
+      //   "user_id",
+      //   "-password"
+      // );
+
+      // Rename used_id key to user
+      const updatedMePopulated = (await findAndPopulate(
+        "member",
+        {
+          user_id: member_me.user_id,
+        },
+        "user_id",
+        "-password"
+      )).map(({ user_id, ...rest }) => ({
+        ...rest,
+        user: [user_id],
+      }));
+
+      const updatedUserPopulated = user_populated.map(
+        (user) => user.map(({ user_id, ...rest }) => ({ ...rest, user: [user_id] }))[0]
+      );
+
+      return res.status(200).send({
+        status: 200,
+        data: [
+          {
+            ...conversation._doc,
+            members: [updatedMePopulated[0], ...updatedUserPopulated],
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      return res.status(500).send({ status: 500, error: error });
+    }
+
+  } catch (e) {
+    res.status(400).send({ status: 400, message: e.message });
+  }
+};
+
 // Fetch all conversation (one-to-one and group chat)
 const getConversation = async (req, res) => {
   try {
@@ -181,12 +287,25 @@ const getConversation = async (req, res) => {
           as: "members.user",
         },
       },
-
+      {
+        $lookup: {
+          from: "users",
+          localField: "group_admin",
+          foreignField: "_id",
+          as: "group_admin",
+        },
+      },
       {
         $group: {
           _id: "$_id",
           conversation_name: {
             $first: "$conversation_name",
+          },
+          is_group: {
+            $first: "$is_group",
+          },
+          group_admin: {
+            $first: "$group_admin"
           },
           createdAt: { $first: "$createdAt" },
           updatedAt: { $first: "$updatedAt" },
@@ -209,4 +328,4 @@ const getConversation = async (req, res) => {
   }
 };
 
-module.exports = { accessConversation, getConversation };
+module.exports = { accessConversation, createGroupConversation, getConversation };
