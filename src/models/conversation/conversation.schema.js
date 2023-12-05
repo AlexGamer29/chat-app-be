@@ -7,6 +7,11 @@ const conversationSchema = new mongoose.Schema(
             type: schemaType.TypeString,
             required: true,
         },
+        is_group: {
+            type: schemaType.TypeBoolean,
+            required: true
+        },
+        group_admin: { type: schemaType.TypeObjectId, ref: "users" },
     },
     { timestamps: true }
 );

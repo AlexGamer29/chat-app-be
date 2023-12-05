@@ -62,6 +62,12 @@ const accessConversation = async (req, res) => {
           conversation_name: {
             $first: "$conversation_name",
           },
+          is_group: {
+            $first: "$is_group",
+          },
+          group_admin: {
+            $first: "$group_admin"
+          },
           createdAt: { $first: "$createdAt" },
           updatedAt: { $first: "$updatedAt" },
           __v: { $first: "$__v" },
@@ -85,6 +91,8 @@ const accessConversation = async (req, res) => {
       try {
         let conversation = await insertNewDocument("conversation", {
           conversation_name: req.user.id.concat("_", user_id),
+          is_group: false,
+          group_admin: null
         });
 
         const member_me = await insertNewDocument("member", {
@@ -157,6 +165,8 @@ const createGroupConversation = async (req, res) => {
       // Insert conversation
       let conversation = await insertNewDocument("conversation", {
         conversation_name: group_name,
+        is_group: true,
+        group_admin: new ObjectId(req.user.id)
       });
 
       // Insert this user that create this conversation
@@ -277,12 +287,25 @@ const getConversation = async (req, res) => {
           as: "members.user",
         },
       },
-
+      {
+        $lookup: {
+          from: "users",
+          localField: "group_admin",
+          foreignField: "_id",
+          as: "group_admin",
+        },
+      },
       {
         $group: {
           _id: "$_id",
           conversation_name: {
             $first: "$conversation_name",
+          },
+          is_group: {
+            $first: "$is_group",
+          },
+          group_admin: {
+            $first: "$group_admin"
           },
           createdAt: { $first: "$createdAt" },
           updatedAt: { $first: "$updatedAt" },
