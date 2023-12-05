@@ -15,10 +15,11 @@ const getMessageByConversationIdSchema = Joi.object({
 const sendMessage = async (req, res) => {
     try {
         const validate = await sendMessageSchema.validateAsync(req.body);
+        const user = await find("users", { _id: req.user.id }, { password: 0 })
         const response = await insertNewDocument("message", {
             ...validate,
             from: new ObjectId(req.user.id),
-            seen_users: [new ObjectId(req.user.id)],
+            seen_users: [user[0]],
             sent_datetime: new Date()
         });
         return res.status(200).send({ status: 200, data: response });
