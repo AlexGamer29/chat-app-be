@@ -22,7 +22,7 @@ app.use(cookieParser());
 // * Body Parser
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
 // * Api routes
 app.use("/api", routes);
@@ -38,6 +38,49 @@ app.use("*", (req, res) => {
 
 let PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server is running on PORT ${PORT}`));
+
+const io = require("socket.io")(server, {
+    pingTimeout: 60000,
+    cors: {
+        origin: "http://localhost:5173",
+        // credentials: true,
+    },
+});
+
+io.on("connection", (socket) => {
+    console.log(`*** Connected to socket`)
+
+    socket.on('setup', (userData) => {
+        socket.join(userData._id)
+        console.log(`*** ID`, userData._id)
+        socket.emit("connected")
+    })
+
+    socket.on("join chat", (room) => {
+        socket.join(room);
+        console.log("User Joined Room: " + room);
+    });
+
+    socket.on("typing", (room) => socket.in(room).emit("typing"));
+    socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
+
+    socket.on("new message", (sendMessage, conversation) => {
+        // if (!conversation.members || conversation.members.length === 0) console.log(`chat.users not defined`)
+
+        conversation.members.forEach(member => {
+            if (member.user[0]._id === sendMessage.from) return;
+
+            socket.in(member.user[0]._id).emit("message received", sendMessage)
+        })
+    })
+
+    socket.on("message seen", (messageId, conversation) => {
+        conversation.members.forEach((member) => {
+            if (member.user[0]._id === socket.id) return;
+            socket.in(member.user[0]._id).emit("message seen", messageId);
+        });
+    });
+})
 
 module.exports = app;
