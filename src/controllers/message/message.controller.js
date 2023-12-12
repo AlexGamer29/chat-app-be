@@ -1,4 +1,4 @@
-const { insertNewDocument, find } = require("../../helpers");
+const { insertNewDocument, find, pushIntoArray } = require("../../helpers");
 const Joi = require("joi");
 const { ObjectId } = require("mongodb");
 
@@ -10,6 +10,10 @@ const sendMessageSchema = Joi.object({
 
 const getMessageByConversationIdSchema = Joi.object({
     conversation_id: Joi.string().required(),
+});
+
+const seenMessageByIdSchema = Joi.object({
+    message_id: Joi.string().required().length(24),
 });
 
 const sendMessage = async (req, res) => {
@@ -52,4 +56,21 @@ const getMessageByConversationId = async (req, res) => {
     }
 };
 
-module.exports = { sendMessage, getMessageByConversationId };
+const seenMessageById = async (req, res) => {
+    try {
+        // PATCH
+        const { message_id } = req.body;
+        const validate = await seenMessageByIdSchema.validateAsync(req.body);
+        console.log(`DATA`, validate)
+        const seen_message = await pushIntoArray("message", {
+            _id: message_id
+        }, {
+            seen_users: new ObjectId(req.user.id)
+        })
+        return res.status(200).send({ status: 200, data: seen_message });
+    } catch (e) {
+        res.status(400).send({ status: 400, message: e.message });
+    }
+};
+
+module.exports = { sendMessage, getMessageByConversationId, seenMessageById };
