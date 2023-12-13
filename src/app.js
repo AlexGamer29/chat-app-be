@@ -43,7 +43,7 @@ const server = app.listen(PORT, () => console.log(`Server is running on PORT ${P
 const io = require("socket.io")(server, {
     pingTimeout: 60000,
     cors: {
-        origin: "http://localhost:5173",
+        origin: "https://chat-app-fe-qsa6.onrender.com",
         // credentials: true,
     },
 });
