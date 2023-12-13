@@ -75,10 +75,10 @@ io.on("connection", (socket) => {
         })
     })
 
-    socket.on("message seen", (messageId, conversation) => {
+    socket.on("message seen", (userSeen, message, conversation) => {
         conversation.members.forEach((member) => {
-            if (member.user[0]._id === socket.id) return;
-            socket.in(member.user[0]._id).emit("message seen", messageId);
+            if (member.user[0]._id === userSeen._id) return;
+            socket.in(member.user[0]._id).emit("seen", userSeen, message);
         });
     });
 })
