@@ -20,9 +20,9 @@ app.use(cors());
 // Middleware to parse cookies
 app.use(cookieParser());
 // * Body Parser
-app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(morgan("combined"));
+app.use(bodyParser.json());
+app.use(morgan("combined"));
 
 // * Api routes
 app.use("/api", routes);
