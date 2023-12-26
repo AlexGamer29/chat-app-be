@@ -7,7 +7,7 @@ const { getUsers, addUser, deleteUser, updateUser, deleteUsers, searchUser } = r
 router.get("/get-users", getUsers);
 router.post("/add-user", addUser);
 router.delete("/delete-user", deleteUser);
-router.put("/update-user/:id", updateUser);
+router.put("/update-user", updateUser);
 router.delete("/delete-users", deleteUsers);
 router.get("/", searchUser);
 

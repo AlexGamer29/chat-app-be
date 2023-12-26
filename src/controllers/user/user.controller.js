@@ -1,5 +1,7 @@
+const { ObjectId } = require("mongodb");
 const { insertNewDocument, deleteDocument, deleteDocuments, find, updateDocument } = require("../../helpers");
 const Joi = require("joi");
+const bcrypt = require("bcryptjs");
 
 const addUserSchema = Joi.object({
     first_name: Joi.string().required(),
@@ -17,7 +19,6 @@ const updateUserSchema = Joi.object({
     first_name: Joi.string(),
     last_name: Joi.string(),
     username: Joi.string(),
-    email: Joi.string(),
     password: Joi.string(),
 });
 const addUser = async (req, res) => {
@@ -63,14 +64,18 @@ const getUsers = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
+    const user_id = req.user.id;
+    const { first_name, last_name, username, password } = req.body
     try {
         const validate = await updateUserSchema.validateAsync(req.body);
-        const user_type_updated = await updateDocument(
+        const hashPassword = await bcrypt.hashSync(password, bcrypt.genSaltSync(10))
+        const user = await updateDocument(
             "users",
-            { _id: req.params.id },
-            req.body
+            { _id: new ObjectId(user_id) },
+            { first_name, last_name, username, password: hashPassword }
         );
-        return res.status(200).send({ status: 200, user_type_updated });
+        user.password = undefined;
+        return res.status(200).send({ status: 200, user: user });
     } catch (e) {
         res.status(400).send({ status: 400, message: e.message });
     }
