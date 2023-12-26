@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema(
             type: schemaType.TypeString,
             required: true,
         },
+        profile_photo: {
+            type: schemaType.TypeString,
+            default: 'https://cdn-icons-png.flaticon.com/512/1/1247.png'
+        },
         created_date: {
             type: schemaType.TypeDate,
             default: Date.now,

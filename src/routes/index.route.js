@@ -15,6 +15,6 @@ router.use("/user", authenticateJWT, user);
 router.use("/member", authenticateJWT, member);
 router.use("/conversation", authenticateJWT, conversation);
 router.use("/message", authenticateJWT, message);
-router.use("/file", file);
+router.use("/file", authenticateJWT, file);
 
 module.exports = router;
