@@ -6,12 +6,21 @@ const morgan = require("morgan");
 const cors = require("cors");
 const routes = require("./routes/index.route");
 const app = express();
+const {
+    sendScheduledMessages
+} = require("./services/index.service")
+const cron = require('node-cron');
 
 // * Database connection
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
     console.log("db connected!");
+});
+
+cron.schedule('0,15,30,45 * * * *', async function () {
+    await sendScheduledMessages()
+    console.log("This task runs every minute");
 });
 
 // * Cors

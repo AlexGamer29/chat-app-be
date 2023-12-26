@@ -9,6 +9,7 @@ db.users = require("./user/users.model");
 db.member = require("./member/member.model");
 db.conversation = require("./conversation/conversation.model");
 db.message = require("./message/message.model");
+db.scheduleMessage = require("./schedule-message/schedule-message.model");
 
 // // Create two users
 // const user1 = new db.users({

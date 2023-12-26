@@ -8,6 +8,7 @@ const member = require("./member/member.route")
 const conversation = require("./conversation/conversation.route")
 const message = require("./message/message.route")
 const file = require("./file/file.route");
+const scheduleMessage = require("./schedule-message/schedule-message.route");
 
 // AUTH Routes * /api/auth/*
 router.use("/auth", auth);
@@ -16,5 +17,6 @@ router.use("/member", authenticateJWT, member);
 router.use("/conversation", authenticateJWT, conversation);
 router.use("/message", authenticateJWT, message);
 router.use("/file", authenticateJWT, file);
+router.use("/schedule-message", authenticateJWT, scheduleMessage);
 
 module.exports = router;
