@@ -4,6 +4,7 @@ const { addMember } = require("./member/member.controller")
 const { sendMessage, getMessageByConversationId, seenMessageById } = require("./message/message.controller")
 const { accessConversation, createGroupConversation, getConversation } = require("./conversation/conversation.controller")
 const { signUp, logIn } = require("./auth/auth.controller")
+const { saveScheduleMessage } = require("./schedule-message/schedule-message.controller")
 
 module.exports = {
     uploadImage,
@@ -21,5 +22,6 @@ module.exports = {
     createGroupConversation,
     sendMessage,
     getMessageByConversationId,
-    seenMessageById
+    seenMessageById,
+    saveScheduleMessage
 };
