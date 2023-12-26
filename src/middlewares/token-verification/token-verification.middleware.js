@@ -14,6 +14,7 @@ function authenticateJWT(req, res, next) {
     // Check if the Authorization header starts with 'Bearer'
     if (authHeader.startsWith('Bearer ')) {
         // Extract the token from the header
+        
         const token = authHeader.slice(7); // Removes 'Bearer ' prefix
 
         // Verify the token using your secret key

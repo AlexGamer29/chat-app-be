@@ -20,9 +20,9 @@ app.use(cors());
 // Middleware to parse cookies
 app.use(cookieParser());
 // * Body Parser
-app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(morgan("combined"));
+app.use(bodyParser.json());
+app.use(morgan("combined"));
 
 // * Api routes
 app.use("/api", routes);
@@ -43,7 +43,7 @@ const server = app.listen(PORT, () => console.log(`Server is running on PORT ${P
 const io = require("socket.io")(server, {
     pingTimeout: 60000,
     cors: {
-        origin: "https://chat-app-fe-qsa6.onrender.com",
+        origin: "*",
         // credentials: true,
     },
 });

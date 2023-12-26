@@ -1,3 +1,4 @@
+const { uploadImage } = require("./file/file.controller")
 const { getUsers, addUser, deleteUser, updateUser, deleteUsers, searchUser } = require("./user/user.controller")
 const { addMember } = require("./member/member.controller")
 const { sendMessage, getMessageByConversationId, seenMessageById } = require("./message/message.controller")
@@ -5,6 +6,7 @@ const { accessConversation, createGroupConversation, getConversation } = require
 const { signUp, logIn } = require("./auth/auth.controller")
 
 module.exports = {
+    uploadImage,
     getUsers,
     addUser,
     deleteUser,
